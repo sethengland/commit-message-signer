@@ -1,0 +1,26 @@
+#!/bin/bash
+
+COMMIT_MSG_FILE="$1"
+
+# Check if the commit message already contains the expected prefix
+POUT=$(awk '/^\[[a-zA-Z]+-[0-9]+\]/' "$COMMIT_MSG_FILE")
+if [ -z "$POUT" ]; then
+    # Get the current branch name
+    BRANCH_NAME=$(git symbolic-ref --short HEAD)
+
+    # Extract the issue number from the branch name using a regular expression
+    if [[ $BRANCH_NAME =~ ^([a-zA-Z]+)-([0-9]+)- ]]; then
+        ISSUE_TYPE=${BASH_REMATCH[1]}
+        ISSUE_NUMBER=${BASH_REMATCH[2]}
+        sed -i.bak -e "1s/^/[$(echo "$ISSUE_TYPE" | tr '[:lower:]' '[:upper:]')-$ISSUE_NUMBER] /" "$COMMIT_MSG_FILE"
+        # Print debug information
+        echo "Commit message updated."
+    else
+        # Print debug information
+        echo "Branch name did not match the expected pattern."
+    fi
+else
+    # Print debug information
+    echo "Commit message already contains the expected prefix: $POUT."
+fi
+
